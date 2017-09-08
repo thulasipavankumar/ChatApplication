@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Chat with you friends</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <script>
+            var _host;
+            var _webSocket
+            function init(){
+                var param = window.location.href;
+                var primaryHost = window.location.hostname;
+                console.log(" "+param+" "+primaryHost);
+                
+                openConnection();
+                initializeHandlers();
+                var button = document.getElementById("sendButton");
+                button.onclick = sendMessageToServer;
+            }
+            this.openConnection = function(){
+                var protocolRequest = "ws";
+                if((location.protocol) ==="https:"){
+                    protocolRequest = "wss"
+                }
+                _webSocket = new WebSocket(protocolRequest+"://"+window.location.hostname+":"+location.port+"/ChatApplication/demo");
+            }
+            this.initializeHandlers = function(){
+                _webSocket.onopen = onOpen;
+                _webSocket.onmessage = gotMessage;
+                _webSocket.onclose = onClose;
+            }
+            var onOpen = function(msg){
+                
+            }
+            var gotMessage = function(msg){
+                var data = JSON.parse(msg.data).message;
+                var tag = document.getElementById("displayArea");               
+                var br = document.createElement("br");             
+                tag.appendChild(br);
+                tag.innerHTML = tag.innerHTML+data;             
+            }
+            var onClose = function(msg){
+                
+            }
+            function waitForSocketConnection(socket, callback) {
+            var retryTimes = 0;
+            setTimeout(
+                function () {
+                    if (socket.readyState === 1) {
+                        if (callback != null) {
+                            callback();
+                        }
+                        return;
+
+                    } else {
+                        waitForSocketConnection(socket, callback);
+                    }
+                    if (retryTimes > 500)
+                    {
+                        return;
+                    }
+                    retryTimes++;
+
+                }, 10); // wait 5 milisecond for the connection...
+    }
+    function sendMessageToServer(){
+        var text = document.getElementById("textArea").value;
+        var jsonMessage ={
+             message:text,
+        };
+        document.getElementById("textArea").value = "";
+        jsonMessage = JSON.stringify(jsonMessage);
+        waitForSocketConnection(_webSocket, function () {
+            _webSocket.send(jsonMessage);
+        });
+    }
+        </script>
+            
+    </head>
+    <body onload="init();">
+        <div>
+        <button type="button" id="sendButton">send Message</button>
+        <textarea id="textArea">
+        
+        </textarea>
+        </div >
+        <div id="displayArea">
+            
+        </div>
+    </body>
+</html>
